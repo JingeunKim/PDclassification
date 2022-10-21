@@ -13,6 +13,10 @@ import matplotlib.pyplot as plt
 from Model import preprocessing
 from Model.metrics import metrics
 
+
+#WEKA로 SVM, Decision Tree
+
+
 use_mps = torch.backends.mps.is_available()
 DEVICE = torch.device('mps' if use_mps else 'cpu')
 print(DEVICE)
@@ -63,6 +67,7 @@ def train_model(X_train, y_train, model):
 
         if step % 10 == 0:
             print(step, loss.item())
+
 
 
 test_acc = []

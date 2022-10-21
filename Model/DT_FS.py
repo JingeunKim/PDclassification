@@ -1,16 +1,16 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_curve, auc
-from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 from scipy import interp
 import time
 import preprocessing
 import metrics
+from sklearn.tree import DecisionTreeClassifier
+df = pd.read_csv('../data/newGA_parkinson_100_100_100.csv', delimiter='\t', header=None)
+df = df.drop(74, axis=1)
+data = df.set_index(0).transpose()
 
-
-df = pd.read_csv('../data/GSE68719_mlpd_PCG_DESeq2_norm_counts.csv')
-data = df.drop(['EnsemblID', 'symbol'], axis=1)
 
 test_acc = []
 tprs = []
@@ -26,25 +26,26 @@ for i in range(5):
     print("{}st fold".format(i))
     start_time = time.perf_counter()
 
-    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv(data, i)
+    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_FS(data, i)
 
     X_train = X_train.apply(pd.to_numeric)
     y_train = y_train.apply(pd.to_numeric)
     X_test = X_test.apply(pd.to_numeric)
     y_test = y_test.apply(pd.to_numeric)
 
-    xgb = XGBClassifier(n_estimators=100, learning_rate=0.1)
-    xgb.fit(X_train, y_train)
-    xgb_pred = xgb.predict(X_test)
 
-    accuracy, precision, recall, f1 = metrics.metrics(y_test, xgb_pred)
+    model = DecisionTreeClassifier()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    accuracy, precision, recall, f1 = metrics.metrics(y_test, y_pred)
 
     test_acc.append(accuracy)
     precision_av.append(precision)
     f1_av.append(f1)
     recall_av.append(recall)
 
-    fpr, tpr, t = roc_curve(y_test, xgb_pred)
+    fpr, tpr, t = roc_curve(y_test, y_pred)
     tprs.append(interp(mean_fpr, fpr, tpr))
     roc_auc = auc(fpr, tpr)
     aucs.append(roc_auc)
@@ -77,6 +78,3 @@ plt.ylabel('True Positive Rate')
 plt.title('ROC')
 plt.legend(loc="lower right")
 plt.show()
-
-
-

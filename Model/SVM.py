@@ -1,13 +1,13 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_curve, auc
-from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 from scipy import interp
 import time
 import preprocessing
 import metrics
 
+from sklearn.svm import SVC
 
 df = pd.read_csv('../data/GSE68719_mlpd_PCG_DESeq2_norm_counts.csv')
 data = df.drop(['EnsemblID', 'symbol'], axis=1)
@@ -33,18 +33,18 @@ for i in range(5):
     X_test = X_test.apply(pd.to_numeric)
     y_test = y_test.apply(pd.to_numeric)
 
-    xgb = XGBClassifier(n_estimators=100, learning_rate=0.1)
-    xgb.fit(X_train, y_train)
-    xgb_pred = xgb.predict(X_test)
+    model = SVC(kernel='linear')
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
 
-    accuracy, precision, recall, f1 = metrics.metrics(y_test, xgb_pred)
+    accuracy, precision, recall, f1 = metrics.metrics(y_test, y_pred)
 
     test_acc.append(accuracy)
     precision_av.append(precision)
     f1_av.append(f1)
     recall_av.append(recall)
 
-    fpr, tpr, t = roc_curve(y_test, xgb_pred)
+    fpr, tpr, t = roc_curve(y_test, y_pred)
     tprs.append(interp(mean_fpr, fpr, tpr))
     roc_auc = auc(fpr, tpr)
     aucs.append(roc_auc)
