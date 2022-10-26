@@ -7,10 +7,10 @@ import time
 import preprocessing
 import metrics
 from sklearn.tree import DecisionTreeClassifier
+
 df = pd.read_csv('../data/newGA_parkinson_100_100_100.csv', delimiter='\t', header=None)
 df = df.drop(74, axis=1)
 data = df.set_index(0).transpose()
-
 
 test_acc = []
 tprs = []
@@ -32,7 +32,6 @@ for i in range(5):
     y_train = y_train.apply(pd.to_numeric)
     X_test = X_test.apply(pd.to_numeric)
     y_test = y_test.apply(pd.to_numeric)
-
 
     model = DecisionTreeClassifier()
     model.fit(X_train, y_train)

@@ -21,6 +21,7 @@ df = pd.read_csv('../data/newGA_parkinson_100_100_100.csv', delimiter='\t', head
 df = df.drop(74, axis=1)
 data = df.set_index(0).transpose()
 
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -33,6 +34,7 @@ class Net(nn.Module):
         self.fc6 = nn.Linear(32, 16)
         self.fc7 = nn.Linear(16, 1)
         self.dropout = nn.Dropout(0.1)
+
     def forward(self, x):
         x = x.float()
         x = self.dropout(F.relu(self.fc1(x.view(-1, 100))))
@@ -62,6 +64,7 @@ def train_model(X_train, y_train, model):
 
         if step % 10 == 0:
             print(step, loss.item())
+
 
 test_acc = []
 tprs = []

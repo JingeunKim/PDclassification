@@ -42,7 +42,7 @@ class GA():
             indx = indx[0]
             for x in range(self.gene_number - 1):
                 idx = indx[x]
-                for a in range(x+1, self.gene_number):
+                for a in range(x + 1, self.gene_number):
                     idx2 = indx[a]
                     x_std = rawData_std[idx]
                     y_std = rawData_std[idx2]

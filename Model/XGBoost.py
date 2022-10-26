@@ -8,7 +8,6 @@ import time
 import preprocessing
 import metrics
 
-
 df = pd.read_csv('../data/GSE68719_mlpd_PCG_DESeq2_norm_counts.csv')
 data = df.drop(['EnsemblID', 'symbol'], axis=1)
 
@@ -77,6 +76,3 @@ plt.ylabel('True Positive Rate')
 plt.title('ROC')
 plt.legend(loc="lower right")
 plt.show()
-
-
-

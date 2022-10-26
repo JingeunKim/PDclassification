@@ -13,17 +13,12 @@ import matplotlib.pyplot as plt
 from Model import preprocessing
 from Model.metrics import metrics
 
-
-#WEKA로 SVM, Decision Tree
-
-
 use_mps = torch.backends.mps.is_available()
 DEVICE = torch.device('mps' if use_mps else 'cpu')
 print(DEVICE)
 
 df = pd.read_csv('../data/GSE68719_mlpd_PCG_DESeq2_norm_counts.csv')
 data = df.drop(['EnsemblID', 'symbol'], axis=1)
-
 
 
 class Net(nn.Module):
@@ -38,6 +33,7 @@ class Net(nn.Module):
         self.fc6 = nn.Linear(32, 16)
         self.fc7 = nn.Linear(16, 1)
         self.dropout = nn.Dropout(0.1)
+
     def forward(self, x):
         x = x.float()
         x = self.dropout(F.relu(self.fc1(x.view(-1, 17580))))
@@ -69,7 +65,6 @@ def train_model(X_train, y_train, model):
             print(step, loss.item())
 
 
-
 test_acc = []
 tprs = []
 aucs = []
@@ -92,6 +87,7 @@ for i in range(5):
     y_test = torch.tensor(y_test.values)
 
     model = Net()
+
     train_model(X_train, y_train, model)
     with torch.no_grad():
         hypothesis = model(X_test)
