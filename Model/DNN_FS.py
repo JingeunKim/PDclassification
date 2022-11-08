@@ -5,13 +5,15 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
 from sklearn.metrics import roc_curve, auc
 from scipy import interp
 import matplotlib.pyplot as plt
 
 from Model import preprocessing
 from Model.metrics import metrics
+
+
+import pytorch_model_summary
 
 use_mps = torch.backends.mps.is_available()
 DEVICE = torch.device('mps' if use_mps else 'cpu')
@@ -89,6 +91,9 @@ for i in range(5):
     y_test = torch.tensor(y_test.values)
 
     model = Net()
+    print(X_train.shape)
+    print(pytorch_model_summary.summary(model, X_train, show_input=False))
+
     train_model(X_train, y_train, model)
     with torch.no_grad():
         hypothesis = model(X_test)
@@ -98,6 +103,7 @@ for i in range(5):
     precision_av.append(precision)
     f1_av.append(f1)
     recall_av.append(recall)
+    print(hypothesis.shape)
     fpr, tpr, t = roc_curve(y_test, hypothesis)
     tprs.append(interp(mean_fpr, fpr, tpr))
     roc_auc = auc(fpr, tpr)

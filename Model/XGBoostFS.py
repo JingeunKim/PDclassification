@@ -34,6 +34,7 @@ for i in range(5):
     y_test = y_test.apply(pd.to_numeric)
 
     xgb = XGBClassifier(n_estimators=100, learning_rate=0.1)
+
     xgb.fit(X_train, y_train)
     xgb_pred = xgb.predict(X_test)
 

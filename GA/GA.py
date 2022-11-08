@@ -5,7 +5,7 @@ import pandas as pd
 
 human_number = 100
 gene_number = 100
-generation_num = 300
+generation_num = 100
 
 
 class GA():
