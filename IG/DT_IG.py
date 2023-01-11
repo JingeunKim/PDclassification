@@ -2,17 +2,17 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_curve, auc, confusion_matrix
 import seaborn as sn
-from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 from scipy import interp
 import time
-import preprocessing
-import metrics
+from Model import preprocessing
+from Model import metrics
+from sklearn.tree import DecisionTreeClassifier
 
-# df = pd.read_csv('../data/newGA_parkinson_100_100_100.csv', delimiter='\t', header=None)
-# # df = df.drop(74, axis=1)
-
-data = df.set_index(0).transpose()
+data = pd.read_csv('../fs.csv', delimiter=',', header=None)
+# df = df.drop(74, axis=1)
+print(data)
+# data = df.set_index(0).transpose()
 
 test_acc = []
 tprs = []
@@ -30,18 +30,18 @@ for i in range(5):
     print("{}st fold".format(i))
     start_time = time.perf_counter()
 
-    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_FS(data, i)
+    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_IG(data, i)
 
     X_train = X_train.apply(pd.to_numeric)
     y_train = y_train.apply(pd.to_numeric)
     X_test = X_test.apply(pd.to_numeric)
     y_test = y_test.apply(pd.to_numeric)
 
-    xgb = XGBClassifier(n_estimators=100, learning_rate=0.1, random_state=i)
-    xgb.fit(X_train, y_train)
-    xgb_pred = xgb.predict(X_test)
+    model = DecisionTreeClassifier(random_state=3)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
 
-    accuracy, precision, recall, f1 = metrics.metrics(y_test, xgb_pred)
+    accuracy, precision, recall, f1 = metrics.metrics(y_test, y_pred)
 
     test_acc.append(accuracy)
     precision_av.append(precision)
@@ -49,9 +49,9 @@ for i in range(5):
     recall_av.append(recall)
 
     predicted_classes = np.append(predicted_classes, y_test)
-    actual_classes = np.append(actual_classes, xgb_pred)
+    actual_classes = np.append(actual_classes, y_pred)
 
-    fpr, tpr, t = roc_curve(y_test, xgb_pred)
+    fpr, tpr, t = roc_curve(y_test, y_pred)
     tprs.append(interp(mean_fpr, fpr, tpr))
     roc_auc = auc(fpr, tpr)
     aucs.append(roc_auc)
@@ -85,6 +85,7 @@ plt.title('ROC')
 plt.legend(loc="lower right")
 plt.show()
 
+
 print("all acc")
 print(test_acc)
 
@@ -110,3 +111,4 @@ def plot_confusion_matrix(actual_classes: np.array, predicted_classes: np.array,
 print(actual_classes)
 print(predicted_classes)
 plot_confusion_matrix(actual_classes, predicted_classes, ["Control", "PD"])
+

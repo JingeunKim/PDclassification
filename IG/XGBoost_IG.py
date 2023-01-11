@@ -6,13 +6,14 @@ from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 from scipy import interp
 import time
-import preprocessing
-import metrics
 
-# df = pd.read_csv('../data/newGA_parkinson_100_100_100.csv', delimiter='\t', header=None)
-# # df = df.drop(74, axis=1)
+from Model import preprocessing
+from Model import metrics
 
-data = df.set_index(0).transpose()
+data = pd.read_csv('../wolf.csv', delimiter=',', header=None)
+print(data)
+# df = df.drop(74, axis=1)
+# data = df.set_index(0).transpose()
 
 test_acc = []
 tprs = []
@@ -30,7 +31,7 @@ for i in range(5):
     print("{}st fold".format(i))
     start_time = time.perf_counter()
 
-    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_FS(data, i)
+    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_IG(data, i)
 
     X_train = X_train.apply(pd.to_numeric)
     y_train = y_train.apply(pd.to_numeric)

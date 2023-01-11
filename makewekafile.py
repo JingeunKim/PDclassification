@@ -2,7 +2,7 @@ import dataloader
 
 df, data, label, symbol, col_name = dataloader.dataloader()
 name = []
-f = open("newGA_parkinson_weka.arff", 'w')
+f = open("../newGA_parkinson_weka2.arff", 'w')
 f.write("@relation parkinson" + '\n')
 for a in range(len(symbol)):
     if symbol[a] in name:

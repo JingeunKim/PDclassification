@@ -2,9 +2,9 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-
+import math
 human_number = 100
-gene_number = 75
+gene_number = 50
 generation_num = 100
 
 
@@ -105,8 +105,9 @@ class GA():
     def rank(self, avg, X_C):
         final_p_value = np.zeros(len(avg))
         for i in range(len(avg)):
-            final_p_value[i] = avg[i] * 2 + X_C
-        rank = final_p_value.argsort()
+            # final_p_value[i] = avg[i] * 2 + X_C
+            final_p_value[i] = (X_C*self.gene_number)/math.sqrt(self.gene_number+self.gene_number*(self.gene_number-1)*avg[i])
+        rank = final_p_value.argsort()[::-1]
         return rank, final_p_value
 
     def evolve(self, human, rawData_std, X_C, rawData):
@@ -159,11 +160,10 @@ class GA():
                     baby1[a] = 1
             avg = self.score(new_human, rawData_std, rawData)
             rank, final_p_value = self.rank(avg, X_C)
-
             new_human = new_human[rank]
             new_human = new_human[:human_range]
-            print("최고 낮은 p value = ", final_p_value.min())
-            threshold_GA.append(final_p_value.min())
+            print("최고 높은 p value = ", final_p_value.max())
+            threshold_GA.append(final_p_value.max())
         self.drawGA(threshold_GA)
         return new_human
 
@@ -189,7 +189,7 @@ class GA():
         return baby
 
     def savescv(self, new_human, df, label, symbol, col_name):
-        f = open("newGA_parkinson_" + str(human_number) + "_" + str(gene_number) + "_" + str(generation_num) + ".csv",
+        f = open("newGA2_parkinson_" + str(human_number) + "_" + str(gene_number) + "_" + str(generation_num) + ".csv",
                  'w')
         micro_array = []
         final_human = new_human[0]
@@ -212,7 +212,7 @@ class GA():
             f.write(str(label[n]) + '\t')
         f.close()
 
-        f = open("genetic_name_" + str(human_number) + "_" + str(gene_number) + "_" + str(generation_num) + ".csv", 'w')
+        f = open("genetic_name2_" + str(human_number) + "_" + str(gene_number) + "_" + str(generation_num) + ".csv", 'w')
         f.write("SYMBOL" + '\t')
         for a in range(self.col):
             if final_human[a] == 1:

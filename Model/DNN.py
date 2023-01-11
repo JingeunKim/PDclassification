@@ -1,12 +1,13 @@
 import time
-
+from sklearn.metrics import roc_curve, auc, confusion_matrix
+import seaborn as sn
+import pandas as pd
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from sklearn.metrics import roc_curve, auc
 from scipy import interp
 import matplotlib.pyplot as plt
 
@@ -61,8 +62,8 @@ def train_model(X_train, y_train, model):
         loss.backward()
         optimizer.step()
 
-        if step % 10 == 0:
-            print(step, loss.item())
+        # if step % 10 == 0:
+        #     print(step, loss.item())
 
 
 test_acc = []
@@ -73,6 +74,8 @@ time_av = []
 precision_av = []
 f1_av = []
 recall_av = []
+actual_classes = np.empty([0], dtype=int)
+predicted_classes = np.empty([0], dtype=int)
 start_time_all = time.perf_counter()
 for i in range(5):
     # %%time
@@ -102,6 +105,11 @@ for i in range(5):
     roc_auc = auc(fpr, tpr)
     aucs.append(roc_auc)
     plt.plot(fpr, tpr, lw=2, alpha=0.3, label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
+
+
+    predicted_classes = np.append(predicted_classes, y_test)
+    actual_classes = np.append(actual_classes, predicted)
+
     i = i + 1
 
     end_time = time.perf_counter()
@@ -112,6 +120,18 @@ for i in range(5):
 end_time_all = time.perf_counter()
 elapsed_time_all = end_time_all - start_time_all
 print("all CPU Time = ", elapsed_time_all)
+
+print("all acc")
+print(test_acc)
+
+print("all precision")
+print(precision_av)
+
+print("all f1")
+print(f1_av)
+
+print("all recall")
+print(recall_av)
 
 print("cv")
 print("Test acc = %.2f (+/- %.2f%%)" % (np.mean(test_acc) * 100, np.std(test_acc) * 100))
@@ -130,3 +150,17 @@ plt.ylabel('True Positive Rate')
 plt.title('ROC')
 plt.legend(loc="lower right")
 plt.show()
+
+
+def plot_confusion_matrix(actual_classes: np.array, predicted_classes: np.array, sorted_labels: list):
+    matrix = confusion_matrix(actual_classes, predicted_classes, labels=[0, 1])
+    print(matrix)
+    plt.figure(figsize=(12, 6))
+    sn.heatmap(matrix, annot=True, xticklabels=sorted_labels, yticklabels=sorted_labels, cmap="Blues", fmt="g")
+    plt.xlabel('Predicted');
+    plt.ylabel('Actual');
+    plt.title('Confusion Matrix')
+
+    plt.show()
+
+plot_confusion_matrix(actual_classes, predicted_classes, ["Control", "PD"])

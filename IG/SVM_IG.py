@@ -1,18 +1,17 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_curve, auc, confusion_matrix
-import seaborn as sn
-from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 from scipy import interp
 import time
-import preprocessing
-import metrics
+from Model import preprocessing
+from Model import metrics
+from sklearn.svm import SVC
+import seaborn as sn
 
-# df = pd.read_csv('../data/newGA_parkinson_100_100_100.csv', delimiter='\t', header=None)
-# # df = df.drop(74, axis=1)
-
-data = df.set_index(0).transpose()
+data = pd.read_csv('../fs.csv', delimiter=',', header=None)
+# df = df.drop(74, axis=1)
+# data = df.set_index(0).transpose()
 
 test_acc = []
 tprs = []
@@ -30,32 +29,30 @@ for i in range(5):
     print("{}st fold".format(i))
     start_time = time.perf_counter()
 
-    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_FS(data, i)
+    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_IG(data, i)
 
     X_train = X_train.apply(pd.to_numeric)
     y_train = y_train.apply(pd.to_numeric)
     X_test = X_test.apply(pd.to_numeric)
     y_test = y_test.apply(pd.to_numeric)
 
-    xgb = XGBClassifier(n_estimators=100, learning_rate=0.1, random_state=i)
-    xgb.fit(X_train, y_train)
-    xgb_pred = xgb.predict(X_test)
+    model = SVC(kernel='linear', random_state=i)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
 
-    accuracy, precision, recall, f1 = metrics.metrics(y_test, xgb_pred)
+    accuracy, precision, recall, f1 = metrics.metrics(y_test, y_pred)
 
     test_acc.append(accuracy)
     precision_av.append(precision)
     f1_av.append(f1)
     recall_av.append(recall)
-
     predicted_classes = np.append(predicted_classes, y_test)
-    actual_classes = np.append(actual_classes, xgb_pred)
-
-    fpr, tpr, t = roc_curve(y_test, xgb_pred)
+    actual_classes = np.append(actual_classes, y_pred)
+    fpr, tpr, t = roc_curve(y_test, y_pred)
     tprs.append(interp(mean_fpr, fpr, tpr))
     roc_auc = auc(fpr, tpr)
     aucs.append(roc_auc)
-    plt.plot(fpr, tpr, lw=2, alpha=0.3, label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
+    # plt.plot(fpr, tpr, lw=2, alpha=0.3, label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
     i = i + 1
 
     end_time = time.perf_counter()
@@ -73,17 +70,17 @@ print("Test precision = %.2f (+/- %.2f%%)" % (np.mean(precision_av) * 100, np.st
 print("Test recall_av = %.2f (+/- %.2f%%)" % (np.mean(recall_av) * 100, np.std(recall_av) * 100))
 print("Test f1 = %.2f (+/- %.2f%%)" % (np.mean(f1_av) * 100, np.std(f1_av) * 100))
 print("all time = ", np.sum(time_av))
-plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='black')
+# plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='black')
 mean_tpr = np.mean(tprs, axis=0)
 mean_auc = auc(mean_fpr, mean_tpr)
-plt.plot(mean_fpr, mean_tpr, color='blue',
-         label=r'Mean ROC (AUC = %0.2f )' % (mean_auc), lw=2, alpha=1)
+# plt.plot(mean_fpr, mean_tpr, color='blue',
+#          label=r'Mean ROC (AUC = %0.2f )' % (mean_auc), lw=2, alpha=1)
 
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC')
-plt.legend(loc="lower right")
-plt.show()
+# plt.xlabel('False Positive Rate')
+# plt.ylabel('True Positive Rate')
+# plt.title('ROC')
+# plt.legend(loc="lower right")
+# plt.show()
 
 print("all acc")
 print(test_acc)
@@ -96,6 +93,7 @@ print(f1_av)
 
 print("all recall")
 print(recall_av)
+
 
 def plot_confusion_matrix(actual_classes: np.array, predicted_classes: np.array, sorted_labels: list):
     matrix = confusion_matrix(actual_classes, predicted_classes, labels=[0, 1])
