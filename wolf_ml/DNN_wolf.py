@@ -20,15 +20,14 @@ use_mps = torch.backends.mps.is_available()
 DEVICE = torch.device('mps' if use_mps else 'cpu')
 print(DEVICE)
 
-df = pd.read_csv('../fs.csv', delimiter=',', header=None)
-# df = df.drop(74, axis=1)
-# data = df.set_index(0).transpose()
+df = pd.read_csv('../wolfdata/newGA_parkinson_weka_fs_wolf_1.csv', delimiter=',', header=None)
+cls = df.shape[1]-1
 
 
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(100, 128)
+        self.fc1 = nn.Linear(cls, 128)
         self.fc12 = nn.Linear(128, 128)
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, 64)
@@ -40,7 +39,7 @@ class Net(nn.Module):
 
     def forward(self, x):
         x = x.float()
-        x = self.dropout(F.relu(self.fc1(x.view(-1, 100))))
+        x = self.dropout(F.relu(self.fc1(x.view(-1, cls))))
         x = F.relu(self.fc12(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
@@ -84,7 +83,7 @@ for i in range(5):
     print("{}st fold".format(i))
     start_time = time.perf_counter()
 
-    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_wolf(df, 15)
+    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_IG(df, i, cls)
 
     X_train = torch.tensor(X_train.values)
     X_test = torch.tensor(X_test.values)

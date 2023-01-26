@@ -82,8 +82,7 @@ for i in range(5):
     print("{}st fold".format(i))
     start_time = time.perf_counter()
 
-    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv(data, 15)
-
+    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv(df, i)
     X_train = torch.tensor(X_train.values)
     X_test = torch.tensor(X_test.values)
     y_train = torch.tensor(y_train.values)

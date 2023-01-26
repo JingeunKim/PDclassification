@@ -19,15 +19,16 @@ use_mps = torch.backends.mps.is_available()
 DEVICE = torch.device('mps' if use_mps else 'cpu')
 print(DEVICE)
 
-df = pd.read_csv('../data/newGA_parkinson_100_50_100.csv', delimiter='\t', header=None)
+# df = pd.read_csv('../data/newGA_parkinson_100_100_100.csv', delimiter='\t', header=None)
+df = pd.read_csv('../data/newGA_parkinson_100_100_100.csv', delimiter='\t', header=None)
 df = df.drop(74, axis=1)
 data = df.set_index(0).transpose()
-
+lys = len(df) - 1
 
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(100, 128)
+        self.fc1 = nn.Linear(lys, 128)
         self.fc12 = nn.Linear(128, 128)
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, 64)
@@ -39,7 +40,7 @@ class Net(nn.Module):
 
     def forward(self, x):
         x = x.float()
-        x = self.dropout(F.relu(self.fc1(x.view(-1, 100))))
+        x = self.dropout(F.relu(self.fc1(x.view(-1, lys))))
         x = F.relu(self.fc12(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
@@ -84,7 +85,7 @@ for i in range(5):
     print("{}st fold".format(i))
     start_time = time.perf_counter()
 
-    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_FS(data, 15)
+    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_FS(df, i)
 
     X_train = torch.tensor(X_train.values)
     X_test = torch.tensor(X_test.values)
@@ -108,7 +109,6 @@ for i in range(5):
     aucs.append(roc_auc)
     plt.plot(fpr, tpr, lw=2, alpha=0.3, label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
 
-
     predicted_classes = np.append(predicted_classes, y_test)
     actual_classes = np.append(actual_classes, predicted)
 
@@ -122,18 +122,17 @@ for i in range(5):
 end_time_all = time.perf_counter()
 elapsed_time_all = end_time_all - start_time_all
 print("all CPU Time = ", elapsed_time_all)
-
 print("all acc")
-print(test_acc)
+print(test_acc*100)
 
 print("all precision")
-print(precision_av)
+print(precision_av*100)
 
 print("all f1")
-print(f1_av)
+print(f1_av*100)
 
 print("all recall")
-print(recall_av)
+print(recall_av*100)
 print("cv")
 print("Test acc = %.2f (+/- %.2f%%)" % (np.mean(test_acc) * 100, np.std(test_acc) * 100))
 print("Test precision = %.2f (+/- %.2f%%)" % (np.mean(precision_av) * 100, np.std(precision_av) * 100))
@@ -153,7 +152,6 @@ plt.legend(loc="lower right")
 plt.show()
 
 
-
 def plot_confusion_matrix(actual_classes: np.array, predicted_classes: np.array, sorted_labels: list):
     matrix = confusion_matrix(actual_classes, predicted_classes, labels=[0, 1])
     print(matrix)
@@ -164,4 +162,6 @@ def plot_confusion_matrix(actual_classes: np.array, predicted_classes: np.array,
     plt.title('Confusion Matrix')
 
     plt.show()
+
+
 plot_confusion_matrix(actual_classes, predicted_classes, ["Control", "PD"])
