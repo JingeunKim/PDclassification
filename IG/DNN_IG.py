@@ -80,18 +80,25 @@ recall_av = []
 actual_classes = np.empty([0], dtype=int)
 predicted_classes = np.empty([0], dtype=int)
 start_time_all = time.perf_counter()
-for i in range(5):
+from sklearn.model_selection import StratifiedKFold
+
+cv = StratifiedKFold(n_splits=5, random_state=0, shuffle=True)
+df = df.transpose()
+y = df.loc[75]
+x = df.iloc[:-1]
+X = x.transpose()
+for i, (train_index, test_index) in enumerate(cv.split(X, y)):
     # %%time
     print("{}st fold".format(i))
     start_time = time.perf_counter()
 
-    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_IG(df, i, cls)
+    X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
 
     X_train = torch.tensor(X_train.values)
     X_test = torch.tensor(X_test.values)
     y_train = torch.tensor(y_train.values)
     y_test = torch.tensor(y_test.values)
-
     model = Net()
 
     train_model(X_train, y_train, model)

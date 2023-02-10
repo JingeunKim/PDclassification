@@ -9,7 +9,8 @@ import preprocessing
 import metrics
 from sklearn.tree import DecisionTreeClassifier
 
-df = pd.read_csv('../data/newGA_parkinson_100_25_100.csv', delimiter='\t', header=None)
+# df = pd.read_csv('../data/newGA_parkinson_100_100_100.csv', delimiter='\t', header=None)
+df = pd.read_csv('../data2/newGA2_parkinson_100_100_100.csv', delimiter='\t', header=None)
 df = df.drop(74, axis=1)
 data = df.set_index(0).transpose()
 
@@ -24,12 +25,18 @@ recall_av = []
 actual_classes = np.empty([0], dtype=int)
 predicted_classes = np.empty([0], dtype=int)
 start_time_all = time.perf_counter()
-for i in range(5):
-    # %%time
+from sklearn.model_selection import StratifiedKFold
+
+cv = StratifiedKFold(n_splits=5, random_state=0, shuffle=True)
+df = data.copy()
+y = df['class']
+X = df.drop(['class'], axis=1)
+for i, (train_index, test_index) in enumerate(cv.split(X, y)):
     print("{}st fold".format(i))
     start_time = time.perf_counter()
 
-    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_FS(data, i)
+    X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
 
     X_train = X_train.apply(pd.to_numeric)
     y_train = y_train.apply(pd.to_numeric)

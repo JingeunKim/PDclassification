@@ -9,7 +9,8 @@ from Model import metrics
 from sklearn.svm import SVC
 import seaborn as sn
 
-data = pd.read_csv('../fs.csv', delimiter=',', header=None)
+data = pd.read_csv('../wolfdata/newGA_parkinson_weka_fs_wolf_1.csv', delimiter=',', header=None)
+cls = data.shape[1]-1
 # df = df.drop(74, axis=1)
 # data = df.set_index(0).transpose()
 
@@ -24,12 +25,19 @@ recall_av = []
 actual_classes = np.empty([0], dtype=int)
 predicted_classes = np.empty([0], dtype=int)
 start_time_all = time.perf_counter()
-for i in range(5):
+from sklearn.model_selection import StratifiedKFold
+
+cv = StratifiedKFold(n_splits=5, random_state=0, shuffle=True)
+df = data.transpose()
+y = df.loc[73]
+X = df.iloc[:-1]
+for i, (train_index, test_index) in enumerate(cv.split(X, y)):
     # %%time
     print("{}st fold".format(i))
     start_time = time.perf_counter()
 
-    X_train, X_test, y_train, y_test = preprocessing.preprocess_inputscv_wolf(data, i)
+    X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
 
     X_train = X_train.apply(pd.to_numeric)
     y_train = y_train.apply(pd.to_numeric)
